@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name="bookstore-service", url="http://localhost:8080")
+@FeignClient(name="bookstore-service")
 public interface BookClient {
     @GetMapping("books/{id}")
     BookResponse getBookById(@PathVariable Long id);
