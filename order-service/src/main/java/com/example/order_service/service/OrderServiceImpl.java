@@ -7,10 +7,13 @@ import com.example.order_service.dto.response.BookResponse;
 import com.example.order_service.dto.response.OrderResponse;
 import com.example.order_service.dto.response.UserResponse;
 import com.example.order_service.entity.Order;
+import com.example.order_service.exception.BookNotFoundException;
 import com.example.order_service.exception.InsufficientStockException;
 import com.example.order_service.exception.OrderNotFoundException;
+import com.example.order_service.exception.UserNotFoundException;
 import com.example.order_service.mapper.OrderMapper;
 import com.example.order_service.repository.OrderRepository;
+import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +32,20 @@ public class OrderServiceImpl implements  OrderService{
     private UserClient userClient;
     @Override
     public OrderResponse placeOrder(OrderRequest request) {
-
-        BookResponse book = bookClient.getBookById(request.getBookId());//fetch book details
-        UserResponse user = userClient.getUserById(request.getUserId());//fetch user details
+        BookResponse book;
+        UserResponse user;
+    try{
+        book = bookClient.getBookById(request.getBookId());//fetch book details
+    }
+    catch (FeignException.NotFound e){
+        throw new BookNotFoundException(request.getBookId());
+    }
+    try{
+        user = userClient.getUserById(request.getUserId());//fetch user details
+    }
+    catch (FeignException.NotFound e){
+        throw new UserNotFoundException(request.getBookId());
+    }
         if(book.getStock()==null||book.getStock()<request.getQuantity()) // check stock
             throw new InsufficientStockException("Insufficient stock");
         Order order = OrderMapper.toEntity(request);
